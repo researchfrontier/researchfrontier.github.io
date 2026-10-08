@@ -53,6 +53,33 @@
 		notable new work, the leading directions, and the peer-review mix — readable in a minute.
 	</p>
 
+	<h2>Sources &amp; data licensing</h2>
+	<p>
+		Paper data is aggregated from authoritative open sources and stored only as
+		<strong>metadata</strong> — we never host PDFs or full text. Every paper links out to its DOI
+		or source.
+	</p>
+	<ul class="sources">
+		<li>
+			<strong>OpenAlex</strong> — the backbone: field taxonomy, works and DOIs. Released under
+			<a href="https://help.openalex.org/data/licenses/" target="_blank" rel="noopener noreferrer">CC0</a>
+			(public domain).
+		</li>
+		<li>
+			<strong>arXiv</strong> — preprint metadata, under
+			<a href="https://info.arxiv.org/help/license/index.html" target="_blank" rel="noopener noreferrer">CC0</a>.
+			Full text stays on arXiv.org; we only link to it.
+		</li>
+		<li>
+			<strong>Crossref</strong> — DOI and publication-type signals (open metadata).
+		</li>
+	</ul>
+	<p class="muted small">
+		Metadata from these sources is openly licensed for reuse. Abstracts are shown to help you
+		decide what to read; their underlying rights may rest with authors or publishers, so for the
+		full text always follow the DOI to the source.
+	</p>
+
 	<h2>Roadmap</h2>
 	<p class="muted">
 		This is phase one (a thin slice): browse, follow fields, see fresh papers and directions, read
@@ -96,5 +123,16 @@
 	}
 	.small {
 		font-size: 0.85rem;
+	}
+	.sources {
+		margin: 0.5rem 0 0.75rem;
+		padding-left: 1.1rem;
+	}
+	.sources li {
+		margin-bottom: 0.45rem;
+		color: var(--ink-2);
+	}
+	.sources a {
+		color: var(--accent);
 	}
 </style>
