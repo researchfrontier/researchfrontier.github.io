@@ -16,8 +16,10 @@
 				<div class="dir__head spread">
 					<span class="dir__name">{d.topic_name}</span>
 					<span class="mono dir__stat">
-						{d.count} · {Math.round(d.share * 100)}%
-						<em class:up={d.delta > 0} class:down={d.delta < 0}>{signed(d.delta)}</em>
+						{d.count.toLocaleString()} · {Math.round(d.share * 100)}%
+						{#if d.delta !== 0}
+							<em class:up={d.delta > 0} class:down={d.delta < 0}>{signed(d.delta)}</em>
+						{/if}
 					</span>
 				</div>
 				<div class="dir__bar"><span style="width:{(d.count / max) * 100}%"></span></div>

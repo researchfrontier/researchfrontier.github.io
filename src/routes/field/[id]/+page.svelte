@@ -74,6 +74,11 @@
 </section>
 
 {#if tab === 'papers'}
+	{#if data.papers && data.papers.total_available > 0}
+		<p class="feed-note mono">
+			Newest {allPapers.length} of {data.papers.total_available.toLocaleString()} papers · last {data.windowDays} days
+		</p>
+	{/if}
 	{#if statuses.length > 1}
 		<div class="filters cluster">
 			<button class="chip" aria-pressed={status === 'all'} on:click={() => (status = 'all')}>
@@ -189,6 +194,10 @@
 	}
 	.filters {
 		margin-bottom: 0.2rem;
+	}
+	.feed-note {
+		color: var(--ink-3);
+		margin: 0 0 0.6rem;
 	}
 	.empty {
 		padding-block: 2rem;

@@ -48,6 +48,7 @@ export interface PaperList {
 	window_days: number;
 	reference_date: string;
 	total: number;
+	total_available: number;
 	papers: Paper[];
 }
 
