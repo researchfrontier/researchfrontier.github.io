@@ -49,6 +49,7 @@ export interface PaperList {
 	reference_date: string;
 	total: number;
 	total_available: number;
+	has_more: boolean;
 	papers: Paper[];
 }
 
@@ -58,6 +59,7 @@ export interface TopicPapers {
 	subfield: Breadcrumb;
 	window_days: number;
 	total_available: number;
+	has_more: boolean;
 	papers: Paper[];
 }
 

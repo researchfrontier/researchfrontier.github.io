@@ -29,9 +29,13 @@
 	let limit = PAGE_SIZE;
 	let loading = false;
 	let loadingMore = false;
-	let noMore = (data.topic?.papers.length ?? 0) < PAGE_SIZE;
+	let noMore = !(data.topic?.has_more ?? false);
 	let errored = false;
 	let initialized = false;
+
+	// Monotonic token: only the most recently started request may write state, so a
+	// slow in-flight fetch can't overwrite the list for a newer filter/search/window.
+	let reqSeq = 0;
 
 	function paperOpts(lim: number) {
 		return {
@@ -44,36 +48,42 @@
 
 	async function loadPapers() {
 		if (!browser) return;
+		const myReq = ++reqSeq;
 		loading = true;
+		loadingMore = false; // a full reload supersedes any pending "load more"
 		errored = false;
 		limit = PAGE_SIZE;
 		try {
 			const r = await api.topicPapers(fetch, id, paperOpts(limit));
+			if (myReq !== reqSeq) return;
 			papers = r.papers;
 			totalAvailable = r.total_available;
-			noMore = r.papers.length < limit;
+			noMore = !r.has_more;
 		} catch {
+			if (myReq !== reqSeq) return;
 			errored = true;
 			papers = [];
 			noMore = true;
 		}
-		loading = false;
+		if (myReq === reqSeq) loading = false;
 	}
 
 	async function loadMorePapers() {
 		if (!browser) return;
+		const myReq = ++reqSeq;
 		loadingMore = true;
 		const next = limit + PAGE_SIZE;
 		try {
 			const r = await api.topicPapers(fetch, id, paperOpts(next));
-			noMore = r.papers.length < next || r.papers.length === papers.length;
+			if (myReq !== reqSeq) return;
 			papers = r.papers;
 			totalAvailable = r.total_available;
+			noMore = !r.has_more;
 			limit = next;
 		} catch {
 			/* keep current list */
 		}
-		loadingMore = false;
+		if (myReq === reqSeq) loadingMore = false;
 	}
 
 	// The load() already fetched the default view; refetch only on later changes.
