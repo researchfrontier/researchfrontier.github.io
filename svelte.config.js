@@ -9,7 +9,10 @@ const config = {
 		adapter: adapter({ fallback: '404.html', precompress: false, strict: false }),
 		// Org site lives at the root (researchfrontier.github.io) -> empty base path.
 		// For a project page, set BASE_PATH=/researchfrontier-frontend at build time.
-		paths: { base: process.env.BASE_PATH ?? '' }
+		// relative:false emits ABSOLUTE asset URLs (/_app/...), so a deep-linked route
+		// like /field/1702/ loads its assets correctly instead of resolving them
+		// against the current path (which broke direct links / the 404.html fallback).
+		paths: { base: process.env.BASE_PATH ?? '', relative: false }
 	}
 };
 
