@@ -1,0 +1,48 @@
+name: deploy-pages
+
+# Builds the SvelteKit SPA and deploys it to GitHub Pages.
+# For the org site, push this to the repo named "researchfrontier.github.io"
+# so it serves at the clean root https://researchfrontier.github.io/.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Build
+        env:
+          # Production API origin — set this as a repo variable (Settings → Variables).
+          VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+          # Empty for the org site (root). For a project page set e.g. /researchfrontier-frontend
+          BASE_PATH: ${{ vars.BASE_PATH }}
+        run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

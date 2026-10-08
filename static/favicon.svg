@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ResearchFrontier">
+	<rect width="64" height="64" fill="#14110c" />
+	<g fill="none" stroke="#ff6b4a" stroke-width="6" stroke-linecap="square">
+		<path d="M12 45 H26" />
+		<path d="M12 32 H38" />
+		<path d="M12 19 H52" />
+	</g>
+	<circle cx="52" cy="45" r="4.5" fill="#f2ecdd" />
+</svg>
