@@ -178,6 +178,19 @@ export interface TrendFieldDetail {
 	institutions: TrendRankItem[];
 	countries: TrendRankItem[];
 }
+export interface TrendSeriesPoint {
+	date: string;
+	value: number;
+}
+export interface TrendSeries {
+	subfield_id: number;
+	name: string;
+	points: TrendSeriesPoint[];
+}
+export interface TrendHistory {
+	series: TrendSeries[];
+}
+
 export interface InstitutionHit {
 	id: string;
 	name?: string | null;

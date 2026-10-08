@@ -42,7 +42,7 @@
 		: view;
 </script>
 
-<svelte:head><title>Research fields - ResearchFrontier</title></svelte:head>
+<svelte:head><title>Fields - ResearchFrontier</title></svelte:head>
 
 <section class="head">
 	<h1>Research fields</h1>
