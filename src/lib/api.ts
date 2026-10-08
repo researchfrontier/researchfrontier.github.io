@@ -36,6 +36,7 @@ export const api = {
 	breadcrumb: (f: Fetch, id: number) => get<Breadcrumb>(f, `/api/taxonomy/subfields/${id}`),
 	hotFields: (f: Fetch, window = 30, limit = 12) =>
 		get<HotField[]>(f, `/api/fields/hot${qs({ window, limit })}`),
+	coldFields: (f: Fetch, limit = 12) => get<HotField[]>(f, `/api/fields/cold${qs({ limit })}`),
 	fieldPapers: (
 		f: Fetch,
 		id: number,

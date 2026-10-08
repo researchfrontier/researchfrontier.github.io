@@ -10,6 +10,161 @@
 			name="description"
 			content="ResearchFrontier — the state of the art of your field, as it happens."
 		/>
+		<script>
+			// Apply the saved theme before first paint so there's no flash (and so the
+			// boot splash below matches). Mirrors the logic in src/lib/stores/theme.ts.
+			try {
+				var t = localStorage.getItem('rf:theme');
+				if (t === 'light' || t === 'dark')
+					document.documentElement.setAttribute('data-theme', t);
+			} catch (e) {}
+		</script>
+		<style>
+			/* Boot splash — pure HTML/CSS so it paints instantly, before the app's JS and
+			   CSS load. On a Render free-tier cold start the client-side load() blocks
+			   until the API wakes (~30–60s); SvelteKit only mounts the app afterwards, so
+			   this splash stays up for the whole wait and is removed on mount. Colours are
+			   hardcoded (app.css isn't parsed yet) but track the theme. */
+			#rf-boot {
+				position: fixed;
+				inset: 0;
+				z-index: 9999;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: #f7f4ec;
+				color: #16130d;
+				font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+				transition: opacity 0.4s ease;
+			}
+			#rf-boot.rf-boot--done {
+				opacity: 0;
+				pointer-events: none;
+			}
+			.rf-boot__inner {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1.3rem;
+				padding: 1.5rem;
+				text-align: center;
+			}
+			.rf-boot__mark {
+				font-family: 'Fraunces', Georgia, serif;
+				font-weight: 900;
+				font-size: 1.5rem;
+				letter-spacing: -0.03em;
+			}
+			.rf-boot__mark b {
+				color: #cf3f22;
+			}
+			.rf-boot__bars {
+				display: flex;
+				align-items: flex-end;
+				gap: 0.4rem;
+				height: 2.4rem;
+			}
+			.rf-boot__bars span {
+				display: block;
+				width: 0.42rem;
+				height: 100%;
+				background: #cf3f22;
+				transform-origin: bottom;
+			}
+			.rf-boot__bars span:nth-child(1) {
+				transform: scaleY(0.4);
+			}
+			.rf-boot__bars span:nth-child(2) {
+				transform: scaleY(0.7);
+			}
+			.rf-boot__bars span:nth-child(3) {
+				transform: scaleY(1);
+			}
+			.rf-boot__bars span:nth-child(4) {
+				transform: scaleY(0.6);
+			}
+			.rf-boot__bars span:nth-child(5) {
+				transform: scaleY(0.45);
+			}
+			.rf-boot__msg {
+				max-width: 34ch;
+				margin: 0;
+				font-family: 'IBM Plex Mono', ui-monospace, monospace;
+				font-size: 0.8rem;
+				line-height: 1.5;
+				color: #857c69;
+				/* Hidden at first, revealed only once the wait is clearly a cold start so
+				   fast loads never show it. A plain opacity fade has no motion, so it runs
+				   for everyone (NOT gated on the motion query) — otherwise reduced-motion
+				   users would either see it instantly or never. */
+				opacity: 0;
+				animation: rf-boot-fade 0.5s ease forwards;
+				animation-delay: 3.5s;
+			}
+			@keyframes rf-boot-fade {
+				to {
+					opacity: 1;
+				}
+			}
+			@media (prefers-reduced-motion: no-preference) {
+				.rf-boot__bars span {
+					animation: rf-boot-eq 1s ease-in-out infinite;
+				}
+				.rf-boot__bars span:nth-child(2) {
+					animation-delay: 0.12s;
+				}
+				.rf-boot__bars span:nth-child(3) {
+					animation-delay: 0.24s;
+				}
+				.rf-boot__bars span:nth-child(4) {
+					animation-delay: 0.36s;
+				}
+				.rf-boot__bars span:nth-child(5) {
+					animation-delay: 0.48s;
+				}
+				@keyframes rf-boot-eq {
+					0%,
+					100% {
+						transform: scaleY(0.35);
+					}
+					50% {
+						transform: scaleY(1);
+					}
+				}
+			}
+			@media (prefers-color-scheme: dark) {
+				:root:not([data-theme='light']) #rf-boot {
+					background: #14110c;
+					color: #f2ecdd;
+				}
+				:root:not([data-theme='light']) .rf-boot__mark b,
+				:root:not([data-theme='light']) .rf-boot__bars span {
+					background: initial;
+				}
+				:root:not([data-theme='light']) .rf-boot__mark b {
+					color: #ff6b4a;
+				}
+				:root:not([data-theme='light']) .rf-boot__bars span {
+					background: #ff6b4a;
+				}
+				:root:not([data-theme='light']) .rf-boot__msg {
+					color: #8f866f;
+				}
+			}
+			:root[data-theme='dark'] #rf-boot {
+				background: #14110c;
+				color: #f2ecdd;
+			}
+			:root[data-theme='dark'] .rf-boot__mark b {
+				color: #ff6b4a;
+			}
+			:root[data-theme='dark'] .rf-boot__bars span {
+				background: #ff6b4a;
+			}
+			:root[data-theme='dark'] .rf-boot__msg {
+				color: #8f866f;
+			}
+		</style>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
@@ -19,6 +174,18 @@
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
+		<div id="rf-boot" role="status" aria-live="polite">
+			<div class="rf-boot__inner">
+				<div class="rf-boot__mark">Research<b>Frontier</b></div>
+				<div class="rf-boot__bars" aria-hidden="true">
+					<span></span><span></span><span></span><span></span><span></span>
+				</div>
+				<p class="rf-boot__msg">
+					Waking the server — the free tier sleeps between visits, so the first load can
+					take up to a minute. Hang tight.
+				</p>
+			</div>
+		</div>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

@@ -1,12 +1,40 @@
 <script lang="ts">
 	import '../app.css';
+	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
-	import { page } from '$app/stores';
+	import { navigating, page } from '$app/stores';
+	import Loader from '$lib/components/Loader.svelte';
 	import { interests } from '$lib/stores/interests';
 	import { cycleTheme, theme } from '$lib/stores/theme';
 
 	$: path = $page.url.pathname;
 	$: themeLabel = $theme === 'light' ? 'Light' : $theme === 'dark' ? 'Dark' : 'Auto';
+
+	// Remove the instant boot splash (app.html) once the app has mounted. On a cold
+	// start the initial load() blocks until the API wakes, so this fires only when
+	// the first view is ready.
+	onMount(() => {
+		const boot = document.getElementById('rf-boot');
+		if (!boot) return;
+		boot.classList.add('rf-boot--done');
+		setTimeout(() => boot.remove(), 450);
+	});
+
+	// In-session navigations (e.g. opening a field) can hit the API after it has
+	// slept again. Show an overlay only if the navigation takes a moment, so quick
+	// moves stay invisible. The timer is driven from a plain function so the reactive
+	// statement depends only on $navigating (and never on navTimer itself).
+	let showNavLoader = false;
+	let navTimer: ReturnType<typeof setTimeout>;
+	function onNavigate(nav: typeof $navigating) {
+		clearTimeout(navTimer);
+		if (nav) {
+			navTimer = setTimeout(() => (showNavLoader = true), 600);
+		} else {
+			showNavLoader = false;
+		}
+	}
+	$: onNavigate($navigating);
 </script>
 
 <header class="masthead">
@@ -33,6 +61,15 @@
 <main class="shell">
 	<slot />
 </main>
+
+{#if showNavLoader}
+	<div class="nav-loading" role="status" aria-live="polite">
+		<Loader
+			message="Loading…"
+			delayedMessage="The free server may be waking up — this can take up to a minute."
+		/>
+	</div>
+{/if}
 
 <footer class="shell foot">
 	<hr class="rule" />
@@ -65,6 +102,17 @@
 	}
 	.foot p {
 		margin-top: 1rem;
-		max-width: 70ch;
+	}
+
+	.nav-loading {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.5rem;
+		background: color-mix(in srgb, var(--paper) 92%, transparent);
+		backdrop-filter: blur(3px);
 	}
 </style>

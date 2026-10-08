@@ -4,6 +4,7 @@
 	import { api } from '$lib/api';
 	import PaperCard from '$lib/components/PaperCard.svelte';
 	import { STATUS_LABEL } from '$lib/format';
+	import { toggleTopicInterest, topicInterests } from '$lib/stores/topicInterests';
 	import type { Paper, ReviewStatus, TopicPapers } from '$lib/types';
 
 	export let data: { id: number; topic: TopicPapers | null; apiError: boolean };
@@ -15,6 +16,7 @@
 	$: id = data.id;
 	$: topicName = data.topic?.topic_name ?? `Topic ${id}`;
 	$: bc = data.topic?.subfield;
+	$: following = $topicInterests.includes(id);
 
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
@@ -74,7 +76,12 @@
 	</nav>
 
 	<p class="eyebrow">Direction</p>
-	<h1>{topicName}</h1>
+	<div class="head__row">
+		<h1>{topicName}</h1>
+		<button class="btn" class:btn--solid={following} on:click={() => toggleTopicInterest(id)}>
+			{following ? '✓ Following' : 'Follow topic'}
+		</button>
+	</div>
 
 	<div class="toolbar">
 		<div class="windows mono" aria-label="Time window">
@@ -127,9 +134,20 @@
 	.crumbs a:hover {
 		color: var(--accent);
 	}
+	.head__row {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
 	.head h1 {
 		font-size: var(--step-3);
 		margin: 0.2rem 0 0;
+	}
+	.head__row .btn {
+		flex-shrink: 0;
+		white-space: nowrap;
 	}
 	.toolbar {
 		display: flex;

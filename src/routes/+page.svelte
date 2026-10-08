@@ -6,7 +6,7 @@
 	import { interests, toggleInterest } from '$lib/stores/interests';
 	import type { DomainNode, HotField } from '$lib/types';
 
-	export let data: { hot: HotField[]; tree: DomainNode[]; apiError: boolean };
+	export let data: { hot: HotField[]; cold: HotField[]; tree: DomainNode[]; apiError: boolean };
 
 	let hot: HotField[] = data.hot;
 	let hotLimit = 12;
@@ -36,6 +36,10 @@
 	})();
 
 	$: followed = $interests.filter((id) => nameMap.has(id));
+
+	// Coldest = quietest fields. Drop any that also appear in the hot list (only
+	// possible on a very small dataset) so the two lists never show the same field.
+	$: coldShown = data.cold.filter((c) => !hot.some((h) => h.subfield_id === c.subfield_id));
 </script>
 
 <svelte:head><title>ResearchFrontier - the state of the art, as it happens</title></svelte:head>
@@ -104,6 +108,9 @@
 				<button
 					class="chip"
 					aria-pressed={$interests.includes(h.subfield_id)}
+					aria-label={($interests.includes(h.subfield_id) ? 'Following' : 'Follow') +
+						' — ' +
+						h.subfield_name}
 					on:click={() => toggleInterest(h.subfield_id)}
 				>
 					{$interests.includes(h.subfield_id) ? 'Following' : 'Follow'}
@@ -120,6 +127,42 @@
 		</div>
 	{/if}
 </section>
+
+{#if coldShown.length > 0}
+	<section class="block">
+		<div class="spread block__head">
+			<h2>Coldest fields now</h2>
+			<span class="eyebrow">last 30 days · where it's quietest</span>
+		</div>
+
+		<ul class="hot-list">
+			{#each coldShown as h, i (h.subfield_id)}
+				<li class="hot enter" style="animation-delay:{i * 45}ms">
+					<a class="hot__link" href="{base}/field/{h.subfield_id}/">
+						<span class="hot__rank mono">{String(i + 1).padStart(2, '0')}</span>
+						<span class="hot__body">
+							<span class="eyebrow">{h.field_name} · {h.domain_name}</span>
+							<span class="hot__name">{h.subfield_name}</span>
+						</span>
+						<span class="hot__stats mono">
+							<span class="hot__count">{h.count}</span>
+							<span class="hot__delta" class:up={h.delta > 0} class:down={h.delta < 0}>
+								{signed(h.delta)}
+							</span>
+						</span>
+					</a>
+					<button
+						class="chip"
+						aria-pressed={$interests.includes(h.subfield_id)}
+						on:click={() => toggleInterest(h.subfield_id)}
+					>
+						{$interests.includes(h.subfield_id) ? 'Following' : 'Follow'}
+					</button>
+				</li>
+			{/each}
+		</ul>
+	</section>
+{/if}
 
 <style>
 	.load-more {

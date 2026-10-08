@@ -19,7 +19,7 @@
 	$: name = bc?.subfield_name ?? `Field ${id}`;
 	$: following = $interests.includes(id);
 
-	let tab: 'papers' | 'directions' | 'digest' = 'papers';
+	let tab: 'papers' | 'directions' | 'digest' = 'directions';
 
 	// --- papers (fetched live, reactive to window/status/search) ---
 	let windowDays = 30;
@@ -51,8 +51,10 @@
 	}
 
 	// Reload when field / window / status changes (search is debounced separately).
+	// Gated on the Papers tab so we don't fire a live OpenAlex fetch for a hidden tab
+	// now that Directions is the default — the first load happens when Papers is opened.
 	let lastKey = '';
-	$: if (browser) {
+	$: if (browser && tab === 'papers') {
 		const k = `${id}|${windowDays}|${status}`;
 		if (k !== lastKey) {
 			lastKey = k;
@@ -97,10 +99,10 @@
 	</div>
 
 	<div class="tabs" role="tablist">
-		<button role="tab" aria-selected={tab === 'papers'} on:click={() => (tab = 'papers')}>Papers</button>
 		<button role="tab" aria-selected={tab === 'directions'} on:click={() => (tab = 'directions')}>
 			Directions
 		</button>
+		<button role="tab" aria-selected={tab === 'papers'} on:click={() => (tab = 'papers')}>Papers</button>
 		<button role="tab" aria-selected={tab === 'digest'} on:click={() => (tab = 'digest')}>Digest</button>
 	</div>
 </section>

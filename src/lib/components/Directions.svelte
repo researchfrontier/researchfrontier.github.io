@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { signed } from '$lib/format';
+	import { toggleTopicInterest, topicInterests } from '$lib/stores/topicInterests';
 	import type { Direction } from '$lib/types';
 
 	export let directions: Direction[];
@@ -30,6 +31,16 @@
 						<div class="dir__kw mono">{d.keywords.slice(0, 4).join(' · ')}</div>
 					{/if}
 				</a>
+				<button
+					class="chip dir__follow"
+					aria-pressed={$topicInterests.includes(d.topic_id)}
+					aria-label={($topicInterests.includes(d.topic_id) ? 'Following' : 'Follow') +
+						' — ' +
+						d.topic_name}
+					on:click={() => toggleTopicInterest(d.topic_id)}
+				>
+					{$topicInterests.includes(d.topic_id) ? '✓ Following' : 'Follow'}
+				</button>
 			</li>
 		{/each}
 	</ul>
@@ -42,11 +53,20 @@
 		padding: 0;
 	}
 	.dir {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
 		border-top: 1px solid var(--rule);
 	}
 	.dir__link {
 		display: block;
+		flex: 1;
+		min-width: 0;
 		padding-block: 0.9rem;
+	}
+	.dir__follow {
+		flex-shrink: 0;
+		margin-top: 0.9rem;
 	}
 	.dir__name {
 		font-family: var(--font-display);
