@@ -13,6 +13,11 @@
 	const STATUS_OPTS: StatusOpt[] = ['peer_reviewed', 'preprint', 'preprint_published', 'all'];
 	const label = (s: StatusOpt) => (s === 'all' ? 'All' : STATUS_LABEL[s]);
 
+	type VenueOpt = 'all' | 'journal' | 'conference';
+	const VENUE_OPTS: VenueOpt[] = ['all', 'journal', 'conference'];
+	const venueLabel = (v: VenueOpt) =>
+		v === 'all' ? 'All' : v === 'journal' ? 'Journal' : 'Conference';
+
 	$: id = data.id;
 	$: topicName = data.topic?.topic_name ?? `Topic ${id}`;
 	$: bc = data.topic?.subfield;
@@ -23,6 +28,7 @@
 	const PAGE_SIZE = 15;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
+	let venue: VenueOpt = 'all';
 	let search = '';
 	let papers: Paper[] = data.topic?.papers ?? [];
 	let totalAvailable = data.topic?.total_available ?? 0;
@@ -41,6 +47,7 @@
 		return {
 			window: windowDays,
 			status: status === 'all' ? undefined : status,
+			venue: venue === 'all' ? undefined : venue,
 			search: search.trim() || undefined,
 			limit: lim
 		};
@@ -89,7 +96,7 @@
 	// The load() already fetched the default view; refetch only on later changes.
 	let lastKey = '';
 	$: if (browser) {
-		const k = `${id}|${windowDays}|${status}`;
+		const k = `${id}|${windowDays}|${status}|${venue}`;
 		if (!initialized) {
 			initialized = true;
 			lastKey = k;
@@ -143,12 +150,25 @@
 			<button class:on={windowDays === 7} on:click={() => (windowDays = 7)}>7d</button>
 			<button class:on={windowDays === 30} on:click={() => (windowDays = 30)}>30d</button>
 		</div>
-		<div class="cluster status-chips">
-			{#each STATUS_OPTS as s (s)}
-				<button class="chip" aria-pressed={status === s} on:click={() => (status = s)}>
-					{label(s)}
-				</button>
-			{/each}
+		<div class="facet">
+			<span class="facet__label mono" id="status-facet-{id}">Status</span>
+			<div class="cluster status-chips" role="group" aria-labelledby="status-facet-{id}">
+				{#each STATUS_OPTS as s (s)}
+					<button class="chip" aria-pressed={status === s} on:click={() => (status = s)}>
+						{label(s)}
+					</button>
+				{/each}
+			</div>
+		</div>
+		<div class="facet">
+			<span class="facet__label mono" id="venue-facet-{id}">Venue</span>
+			<div class="cluster status-chips" role="group" aria-labelledby="venue-facet-{id}">
+				{#each VENUE_OPTS as v (v)}
+					<button class="chip" aria-pressed={venue === v} on:click={() => (venue = v)}>
+						{venueLabel(v)}
+					</button>
+				{/each}
+			</div>
 		</div>
 	</div>
 </section>
@@ -165,7 +185,9 @@
 	<p class="banner mono">Couldn't load papers. Try again.</p>
 {:else if papers.length === 0}
 	<p class="muted empty">
-		No {status === 'all' ? '' : label(status).toLowerCase() + ' '}papers{search.trim()
+		No {status === 'all' ? '' : label(status).toLowerCase() + ' '}{venue === 'all'
+			? ''
+			: venueLabel(venue).toLowerCase() + ' '}papers{search.trim()
 			? ` matching “${search}”`
 			: ''} in the last {windowDays} days.
 	</p>
@@ -252,6 +274,17 @@
 	}
 	.status-chips {
 		gap: 0.4rem;
+	}
+	.facet {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.facet__label {
+		color: var(--ink-3);
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 	.feed-note {
 		color: var(--ink-3);

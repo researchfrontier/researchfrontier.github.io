@@ -27,3 +27,17 @@ export const STATUS_LABEL: Record<ReviewStatus, string> = {
 export function signed(n: number): string {
 	return n > 0 ? `+${n}` : `${n}`;
 }
+
+// Primary-venue type labels (OpenAlex source.type). The peer-reviewed venue types —
+// journal / conference / book series — are shown as a label on a paper and are the
+// values offered in the venue filter. Preprints/repositories/other get no label.
+export const VENUE_LABEL: Record<string, string> = {
+	journal: 'Journal',
+	conference: 'Conference',
+	'book series': 'Book series'
+};
+
+export function venueTypeLabel(type?: string | null): string | null {
+	if (!type) return null;
+	return VENUE_LABEL[type] ?? null;
+}

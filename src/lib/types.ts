@@ -20,6 +20,9 @@ export interface Breadcrumb {
 	field_name?: string | null;
 	subfield_id?: number | null;
 	subfield_name?: string | null;
+	subfield_description?: string | null;
+	subfield_wikipedia_url?: string | null;
+	subfield_wikidata_id?: string | null;
 }
 
 export interface Paper {

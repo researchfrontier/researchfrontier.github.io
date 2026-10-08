@@ -14,12 +14,17 @@
 	const STATUS_OPTS: StatusOpt[] = ['peer_reviewed', 'preprint', 'preprint_published', 'all'];
 	const label = (s: StatusOpt) => (s === 'all' ? 'All' : STATUS_LABEL[s]);
 
+	type VenueOpt = 'all' | 'journal' | 'conference';
+	const VENUE_OPTS: VenueOpt[] = ['all', 'journal', 'conference'];
+	const venueLabel = (v: VenueOpt) =>
+		v === 'all' ? 'All' : v === 'journal' ? 'Journal' : 'Conference';
+
 	$: id = data.id;
 	$: bc = data.directions?.subfield ?? data.digest?.subfield;
 	$: name = bc?.subfield_name ?? `Field ${id}`;
 	$: following = $interests.includes(id);
 
-	let tab: 'papers' | 'directions' | 'digest' = 'directions';
+	let tab: 'overview' | 'papers' | 'directions' | 'digest' = 'overview';
 
 	// --- papers (fetched live, reactive to window/status/search) ---
 	// Load 15 at a time; "Load more" grows the request. The search/status/window all
@@ -28,6 +33,7 @@
 	const PAGE_SIZE = 15;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
+	let venue: VenueOpt = 'all';
 	let search = '';
 	let papers: Paper[] = [];
 	let totalAvailable = 0;
@@ -45,6 +51,7 @@
 		return {
 			window: windowDays,
 			status: status === 'all' ? undefined : status,
+			venue: venue === 'all' ? undefined : venue,
 			search: search.trim() || undefined,
 			limit: lim
 		};
@@ -95,7 +102,7 @@
 	// now that Directions is the default — the first load happens when Papers is opened.
 	let lastKey = '';
 	$: if (browser && tab === 'papers') {
-		const k = `${id}|${windowDays}|${status}`;
+		const k = `${id}|${windowDays}|${status}|${venue}`;
 		if (k !== lastKey) {
 			lastKey = k;
 			loadPapers();
@@ -131,6 +138,43 @@
 			: digestStatus === 'all'
 				? data.digest.papers
 				: data.digest.papers.filter((p) => p.review_status === digestStatus);
+
+	// --- overview tab: encyclopedic intro (from the breadcrumb) + recent reviews ---
+	// The intro (description + Wikipedia link) rides on the breadcrumb already loaded;
+	// reviews are fetched live from OpenAlex, lazily, the first time Overview is shown.
+	let reviews: Paper[] = [];
+	let reviewsLoading = false;
+	let reviewsLoaded = false;
+	let reviewsError = false;
+	let reviewsForId = -1;
+
+	async function loadReviews() {
+		if (!browser || reviewsLoading) return;
+		reviewsLoading = true;
+		reviewsError = false;
+		const forId = id;
+		try {
+			const r = await api.fieldReviews(fetch, id, 3);
+			if (forId !== id) return;
+			reviews = r;
+			reviewsLoaded = true;
+		} catch {
+			if (forId !== id) return;
+			reviewsError = true;
+		}
+		if (forId === id) reviewsLoading = false;
+	}
+
+	// Reset cached reviews when the field changes, then lazy-load while Overview is open.
+	$: if (browser && id !== reviewsForId) {
+		reviewsForId = id;
+		reviews = [];
+		reviewsLoaded = false;
+		reviewsError = false;
+	}
+	$: if (browser && tab === 'overview' && !reviewsLoaded && !reviewsLoading && id === reviewsForId) {
+		loadReviews();
+	}
 </script>
 
 <svelte:head><title>{name} - ResearchFrontier</title></svelte:head>
@@ -154,6 +198,9 @@
 	</div>
 
 	<div class="tabs" role="tablist">
+		<button role="tab" aria-selected={tab === 'overview'} on:click={() => (tab = 'overview')}>
+			Overview
+		</button>
 		<button role="tab" aria-selected={tab === 'directions'} on:click={() => (tab = 'directions')}>
 			Directions
 		</button>
@@ -162,7 +209,38 @@
 	</div>
 </section>
 
-{#if tab === 'papers'}
+{#if tab === 'overview'}
+	<section class="overview">
+		{#if bc?.subfield_description}
+			<p class="overview__lede">{bc.subfield_description}</p>
+		{/if}
+		{#if bc?.subfield_wikipedia_url}
+			<p class="overview__wiki">
+				<a href={bc.subfield_wikipedia_url} target="_blank" rel="noopener noreferrer">
+					Read an introduction on Wikipedia ↗
+				</a>
+			</p>
+		{:else if !bc?.subfield_description}
+			<p class="muted">No introduction available for this field yet.</p>
+		{/if}
+
+		<h2 class="overview__h">Recent reviews</h2>
+		<p class="section-lede muted">
+			A few authoritative review articles — good entry points into {name}.
+		</p>
+		{#if reviewsLoading}
+			<p class="muted feed-note">Loading…</p>
+		{:else if reviewsError}
+			<p class="banner mono">Couldn't load reviews. Try again.</p>
+		{:else if reviews.length === 0}
+			<p class="muted empty">No recent review articles found for this field.</p>
+		{:else}
+			{#each reviews as p, i (p.id || i)}
+				<PaperCard paper={p} index={i} />
+			{/each}
+		{/if}
+	</section>
+{:else if tab === 'papers'}
 	<div class="papers-toolbar">
 		<input
 			class="search"
@@ -177,12 +255,25 @@
 				<button class:on={windowDays === 7} on:click={() => (windowDays = 7)}>7d</button>
 				<button class:on={windowDays === 30} on:click={() => (windowDays = 30)}>30d</button>
 			</div>
-			<div class="cluster status-chips">
-				{#each STATUS_OPTS as s (s)}
-					<button class="chip" aria-pressed={status === s} on:click={() => (status = s)}>
-						{label(s)}
-					</button>
-				{/each}
+			<div class="facet">
+				<span class="facet__label mono" id="status-facet-{id}">Status</span>
+				<div class="cluster status-chips" role="group" aria-labelledby="status-facet-{id}">
+					{#each STATUS_OPTS as s (s)}
+						<button class="chip" aria-pressed={status === s} on:click={() => (status = s)}>
+							{label(s)}
+						</button>
+					{/each}
+				</div>
+			</div>
+			<div class="facet">
+				<span class="facet__label mono" id="venue-facet-{id}">Venue</span>
+				<div class="cluster status-chips" role="group" aria-labelledby="venue-facet-{id}">
+					{#each VENUE_OPTS as v (v)}
+						<button class="chip" aria-pressed={venue === v} on:click={() => (venue = v)}>
+							{venueLabel(v)}
+						</button>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -199,7 +290,9 @@
 		<p class="banner mono">Couldn't load papers. Try again.</p>
 	{:else if papers.length === 0}
 		<p class="muted empty">
-			No {status === 'all' ? '' : label(status).toLowerCase() + ' '}papers{search
+			No {status === 'all' ? '' : label(status).toLowerCase() + ' '}{venue === 'all'
+				? ''
+				: venueLabel(venue).toLowerCase() + ' '}papers{search
 				? ` matching “${search}”`
 				: ''} in the last {windowDays} days.
 		</p>
@@ -363,6 +456,17 @@
 	.status-chips {
 		gap: 0.4rem;
 	}
+	.facet {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.facet__label {
+		color: var(--ink-3);
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
 	.digest-filter {
 		margin-bottom: 0.4rem;
 	}
@@ -380,6 +484,22 @@
 	.section-lede {
 		max-width: 64ch;
 		margin: 0.3rem 0 0.5rem;
+	}
+	.overview__lede {
+		font-size: var(--step-1);
+		color: var(--ink);
+		max-width: 64ch;
+		margin: 0.2rem 0 0.6rem;
+	}
+	.overview__wiki a {
+		color: var(--accent);
+		font-family: var(--font-ui);
+	}
+	.overview__h {
+		font-size: var(--step-2);
+		margin: 1.6rem 0 0.2rem;
+		padding-top: 1.2rem;
+		border-top: 1px solid var(--rule);
 	}
 	.digest__headline {
 		font-size: var(--step-2);

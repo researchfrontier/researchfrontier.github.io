@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { authorsLine, formatDate } from '$lib/format';
+	import { authorsLine, formatDate, venueTypeLabel } from '$lib/format';
 	import type { Paper } from '$lib/types';
 	import Badge from './Badge.svelte';
 
@@ -7,6 +7,9 @@
 	export let index = 0;
 
 	$: href = paper.doi_url ?? paper.landing_page_url ?? undefined;
+	// Venue type (journal / conference / book series) for a published venue — shown next
+	// to the review badge. Null for preprints/repositories, so no label appears there.
+	$: venueType = venueTypeLabel(paper.primary_source_type);
 </script>
 
 <article class="paper enter" style="animation-delay:{Math.min(index, 12) * 40}ms">
@@ -36,6 +39,9 @@
 
 	<div class="paper__foot">
 		<Badge status={paper.review_status} confidence={paper.review_confidence} />
+		{#if venueType}
+			<span class="venue mono" title="Primary venue type">{venueType}</span>
+		{/if}
 		{#if paper.primary_topic}
 			<span class="tag mono">{paper.primary_topic}</span>
 		{/if}
@@ -95,6 +101,14 @@
 		align-items: center;
 		gap: 0.75rem;
 		flex-wrap: wrap;
+	}
+	.venue {
+		color: var(--ink-3);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		font-size: 0.72rem;
+		padding: 0.08rem 0.5rem;
+		border: 1px solid var(--rule-strong);
 	}
 	.tag {
 		color: var(--ink-2);
