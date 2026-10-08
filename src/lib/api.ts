@@ -44,8 +44,6 @@ export const api = {
 	) => get<PaperList>(f, `/api/fields/${id}/papers${qs(opts)}`),
 	fieldDirections: (f: Fetch, id: number, window = 30) =>
 		get<Directions>(f, `/api/fields/${id}/directions${qs({ window })}`),
-	fieldReviews: (f: Fetch, id: number, limit = 3) =>
-		get<Paper[]>(f, `/api/fields/${id}/reviews${qs({ limit })}`),
 	fieldDigest: (f: Fetch, id: number) => get<Digest>(f, `/api/fields/${id}/digest`),
 	topicPapers: (
 		f: Fetch,

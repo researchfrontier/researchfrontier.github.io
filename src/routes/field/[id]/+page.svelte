@@ -24,13 +24,13 @@
 	$: name = bc?.subfield_name ?? `Field ${id}`;
 	$: following = $interests.includes(id);
 
-	let tab: 'overview' | 'papers' | 'directions' | 'digest' = 'overview';
+	let tab: 'papers' | 'directions' | 'digest' = 'directions';
 
 	// --- papers (fetched live, reactive to window/status/search) ---
-	// Load 15 at a time; "Load more" grows the request. The search/status/window all
+	// Load 5 at a time; "Load more" grows the request. The search/status/window all
 	// run on the backend (OpenAlex), so they filter the WHOLE field feed, not just the
 	// rows already loaded.
-	const PAGE_SIZE = 15;
+	const PAGE_SIZE = 5;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
 	let venue: VenueOpt = 'all';
@@ -138,43 +138,6 @@
 			: digestStatus === 'all'
 				? data.digest.papers
 				: data.digest.papers.filter((p) => p.review_status === digestStatus);
-
-	// --- overview tab: encyclopedic intro (from the breadcrumb) + recent reviews ---
-	// The intro (description + Wikipedia link) rides on the breadcrumb already loaded;
-	// reviews are fetched live from OpenAlex, lazily, the first time Overview is shown.
-	let reviews: Paper[] = [];
-	let reviewsLoading = false;
-	let reviewsLoaded = false;
-	let reviewsError = false;
-	let reviewsForId = -1;
-
-	async function loadReviews() {
-		if (!browser || reviewsLoading) return;
-		reviewsLoading = true;
-		reviewsError = false;
-		const forId = id;
-		try {
-			const r = await api.fieldReviews(fetch, id, 3);
-			if (forId !== id) return;
-			reviews = r;
-			reviewsLoaded = true;
-		} catch {
-			if (forId !== id) return;
-			reviewsError = true;
-		}
-		if (forId === id) reviewsLoading = false;
-	}
-
-	// Reset cached reviews when the field changes, then lazy-load while Overview is open.
-	$: if (browser && id !== reviewsForId) {
-		reviewsForId = id;
-		reviews = [];
-		reviewsLoaded = false;
-		reviewsError = false;
-	}
-	$: if (browser && tab === 'overview' && !reviewsLoaded && !reviewsLoading && id === reviewsForId) {
-		loadReviews();
-	}
 </script>
 
 <svelte:head><title>{name} - ResearchFrontier</title></svelte:head>
@@ -197,10 +160,18 @@
 		</button>
 	</div>
 
+	{#if bc?.subfield_description}
+		<p class="field-desc">
+			<span>{bc.subfield_description}</span>{#if bc?.subfield_wikipedia_url}<a
+					class="field-desc__wiki"
+					href={bc.subfield_wikipedia_url}
+					target="_blank"
+					rel="noopener noreferrer">Wikipedia&nbsp;↗</a
+				>{/if}
+		</p>
+	{/if}
+
 	<div class="tabs" role="tablist">
-		<button role="tab" aria-selected={tab === 'overview'} on:click={() => (tab = 'overview')}>
-			Overview
-		</button>
 		<button role="tab" aria-selected={tab === 'directions'} on:click={() => (tab = 'directions')}>
 			Directions
 		</button>
@@ -209,38 +180,7 @@
 	</div>
 </section>
 
-{#if tab === 'overview'}
-	<section class="overview">
-		{#if bc?.subfield_description}
-			<p class="overview__lede">{bc.subfield_description}</p>
-		{/if}
-		{#if bc?.subfield_wikipedia_url}
-			<p class="overview__wiki">
-				<a href={bc.subfield_wikipedia_url} target="_blank" rel="noopener noreferrer">
-					Read an introduction on Wikipedia ↗
-				</a>
-			</p>
-		{:else if !bc?.subfield_description}
-			<p class="muted">No introduction available for this field yet.</p>
-		{/if}
-
-		<h2 class="overview__h">Recent reviews</h2>
-		<p class="section-lede muted">
-			A few authoritative review articles — good entry points into {name}.
-		</p>
-		{#if reviewsLoading}
-			<p class="muted feed-note">Loading…</p>
-		{:else if reviewsError}
-			<p class="banner mono">Couldn't load reviews. Try again.</p>
-		{:else if reviews.length === 0}
-			<p class="muted empty">No recent review articles found for this field.</p>
-		{:else}
-			{#each reviews as p, i (p.id || i)}
-				<PaperCard paper={p} index={i} />
-			{/each}
-		{/if}
-	</section>
-{:else if tab === 'papers'}
+{#if tab === 'papers'}
 	<div class="papers-toolbar">
 		<input
 			class="search"
@@ -485,21 +425,24 @@
 		max-width: 64ch;
 		margin: 0.3rem 0 0.5rem;
 	}
-	.overview__lede {
-		font-size: var(--step-1);
-		color: var(--ink);
+	.field-desc {
 		max-width: 64ch;
-		margin: 0.2rem 0 0.6rem;
+		margin: 0.6rem 0 0;
+		color: var(--ink-2);
 	}
-	.overview__wiki a {
+	.field-desc__wiki {
+		color: var(--ink-3);
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		white-space: nowrap;
+	}
+	.field-desc__wiki::before {
+		content: '·';
+		color: var(--ink-3);
+		margin: 0 0.6ch;
+	}
+	.field-desc__wiki:hover {
 		color: var(--accent);
-		font-family: var(--font-ui);
-	}
-	.overview__h {
-		font-size: var(--step-2);
-		margin: 1.6rem 0 0.2rem;
-		padding-top: 1.2rem;
-		border-top: 1px solid var(--rule);
 	}
 	.digest__headline {
 		font-size: var(--step-2);

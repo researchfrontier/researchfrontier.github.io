@@ -23,9 +23,9 @@
 	$: bc = data.topic?.subfield;
 	$: following = $topicInterests.includes(id);
 
-	// Load 15 at a time; "Load more" grows the request. Search/status/window run on the
+	// Load 5 at a time; "Load more" grows the request. Search/status/window run on the
 	// backend (OpenAlex), so they filter the WHOLE topic feed, not just the loaded rows.
-	const PAGE_SIZE = 15;
+	const PAGE_SIZE = 5;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
 	let venue: VenueOpt = 'all';
