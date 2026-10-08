@@ -129,6 +129,71 @@ export interface Limits {
 	services: ServiceLimit[];
 }
 
+export interface TrendYearPoint {
+	year: number;
+	count: number;
+}
+export interface TrendField {
+	subfield_id: number;
+	subfield_name: string;
+	field_name?: string | null;
+	domain_name?: string | null;
+	count_30d: number;
+	prev_30d: number;
+	momentum: number;
+	years: TrendYearPoint[];
+}
+export interface TrendHot {
+	fields: TrendField[];
+}
+export interface TrendRankItem {
+	rank: number;
+	name: string;
+	key: string;
+	count: number;
+}
+export interface TrendCitedItem {
+	rank: number;
+	title: string;
+	doi?: string | null;
+	url?: string | null;
+	cited_by_count: number;
+	year?: number | null;
+}
+export interface TrendMomentumPoint {
+	date: string;
+	works_30d: number;
+}
+export interface TrendTopic {
+	topic_id: number;
+	topic_name: string;
+	count: number;
+}
+export interface TrendFieldDetail {
+	subfield: Breadcrumb;
+	years: TrendYearPoint[];
+	momentum: TrendMomentumPoint[];
+	top_topics: TrendTopic[];
+	most_cited: TrendCitedItem[];
+	institutions: TrendRankItem[];
+	countries: TrendRankItem[];
+}
+export interface InstitutionHit {
+	id: string;
+	name?: string | null;
+	country_code?: string | null;
+	works_count: number;
+}
+export interface InstitutionFieldItem {
+	subfield_id?: number | null;
+	name?: string | null;
+	count: number;
+}
+export interface InstitutionFieldsOut {
+	id: string;
+	fields: InstitutionFieldItem[];
+}
+
 export interface Digest {
 	subfield: Breadcrumb;
 	edition_date: string;

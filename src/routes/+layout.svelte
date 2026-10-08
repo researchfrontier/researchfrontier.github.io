@@ -48,6 +48,9 @@
 			>
 				Fields{#if $interests.length}&nbsp;·&nbsp;{$interests.length}{/if}
 			</a>
+			<a href="{base}/trends/" aria-current={path.startsWith(`${base}/trends`) ? 'page' : undefined}>
+				Trends
+			</a>
 			<a href="{base}/about/" aria-current={path.startsWith(`${base}/about`) ? 'page' : undefined}>
 				About
 			</a>

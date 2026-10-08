@@ -5,10 +5,14 @@ import type {
 	Directions,
 	DomainNode,
 	HotField,
+	InstitutionFieldsOut,
+	InstitutionHit,
 	Limits,
 	Paper,
 	PaperList,
-	TopicPapers
+	TopicPapers,
+	TrendFieldDetail,
+	TrendHot
 } from './types';
 
 type Fetch = typeof fetch;
@@ -50,5 +54,11 @@ export const api = {
 		id: number,
 		opts: { window?: number; status?: string; venue?: string; search?: string; limit?: number } = {}
 	) => get<TopicPapers>(f, `/api/topics/${id}/papers${qs(opts)}`),
-	paper: (f: Fetch, id: number) => get<Paper>(f, `/api/papers/${id}`)
+	paper: (f: Fetch, id: number) => get<Paper>(f, `/api/papers/${id}`),
+	trendsHot: (f: Fetch, limit = 12) => get<TrendHot>(f, `/api/trends/hot${qs({ limit })}`),
+	trendsField: (f: Fetch, id: number) => get<TrendFieldDetail>(f, `/api/trends/fields/${id}`),
+	institutionSearch: (f: Fetch, q: string) =>
+		get<InstitutionHit[]>(f, `/api/trends/institutions${qs({ q })}`),
+	institutionFields: (f: Fetch, id: string) =>
+		get<InstitutionFieldsOut>(f, `/api/trends/institutions/${id}`)
 };
