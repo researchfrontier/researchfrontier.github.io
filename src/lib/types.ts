@@ -108,6 +108,22 @@ export interface DomainNode {
 	fields: FieldNode[];
 }
 
+export interface LimitItem {
+	label: string;
+	now: string;
+	limit: string;
+	live: boolean;
+}
+export interface ServiceLimit {
+	service: string;
+	plan: string;
+	items: LimitItem[];
+	note?: string | null;
+}
+export interface Limits {
+	services: ServiceLimit[];
+}
+
 export interface Digest {
 	subfield: Breadcrumb;
 	edition_date: string;

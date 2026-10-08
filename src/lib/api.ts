@@ -5,6 +5,7 @@ import type {
 	Directions,
 	DomainNode,
 	HotField,
+	Limits,
 	Paper,
 	PaperList,
 	TopicPapers
@@ -31,6 +32,7 @@ const qs = (params: Record<string, string | number | undefined>) => {
 
 export const api = {
 	taxonomyTree: (f: Fetch) => get<DomainNode[]>(f, '/api/taxonomy/tree'),
+	limits: (f: Fetch) => get<Limits>(f, '/api/limits'),
 	breadcrumb: (f: Fetch, id: number) => get<Breadcrumb>(f, `/api/taxonomy/subfields/${id}`),
 	hotFields: (f: Fetch, window = 30, limit = 12) =>
 		get<HotField[]>(f, `/api/fields/hot${qs({ window, limit })}`),
