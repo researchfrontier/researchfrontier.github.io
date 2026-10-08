@@ -8,22 +8,24 @@
 	let q = '';
 	$: ql = q.trim().toLowerCase();
 
-	function matches(name: string) {
-		return !ql || name.toLowerCase().includes(ql);
+	// `ql` is passed in (not closed over) so the reactive `view` actually tracks it
+	// and re-runs when the query changes.
+	function filterTree(tree: DomainNode[], query: string): DomainNode[] {
+		const hit = (name: string) => !query || name.toLowerCase().includes(query);
+		return tree
+			.map((d) => ({
+				...d,
+				fields: d.fields
+					.map((f) => ({
+						...f,
+						subfields: f.subfields.filter((s) => hit(s.name) || hit(f.name) || hit(d.name))
+					}))
+					.filter((f) => f.subfields.length > 0)
+			}))
+			.filter((d) => d.fields.length > 0);
 	}
 
-	// Keep a domain/field only if it (or a child) matches the query.
-	$: view = data.tree
-		.map((d) => ({
-			...d,
-			fields: d.fields
-				.map((f) => ({
-					...f,
-					subfields: f.subfields.filter((s) => matches(s.name) || matches(f.name) || matches(d.name))
-				}))
-				.filter((f) => f.subfields.length > 0)
-		}))
-		.filter((d) => d.fields.length > 0);
+	$: view = filterTree(data.tree, ql);
 </script>
 
 <svelte:head><title>Research fields — ResearchFrontier</title></svelte:head>

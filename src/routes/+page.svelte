@@ -94,7 +94,7 @@
 
 <style>
 	.hero {
-		padding-block: clamp(1rem, 5vw, 3.5rem) clamp(2rem, 5vw, 3.5rem);
+		padding-block: clamp(0.25rem, 1.5vw, 0.75rem) clamp(2rem, 5vw, 3.5rem);
 		border-bottom: 1px solid var(--rule-strong);
 	}
 	.hero__title {
