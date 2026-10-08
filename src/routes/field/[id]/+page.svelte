@@ -22,32 +22,62 @@
 	let tab: 'papers' | 'directions' | 'digest' = 'directions';
 
 	// --- papers (fetched live, reactive to window/status/search) ---
+	// Load 15 at a time; "Load more" grows the request. The search/status/window all
+	// run on the backend (OpenAlex), so they filter the WHOLE field feed, not just the
+	// rows already loaded.
+	const PAGE_SIZE = 15;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
 	let search = '';
 	let papers: Paper[] = [];
 	let totalAvailable = 0;
+	let limit = PAGE_SIZE;
 	let loadingPapers = false;
+	let loadingMore = false;
+	let noMore = false;
 	let papersError = false;
+
+	function paperOpts(lim: number) {
+		return {
+			window: windowDays,
+			status: status === 'all' ? undefined : status,
+			search: search.trim() || undefined,
+			limit: lim
+		};
+	}
 
 	async function loadPapers() {
 		if (!browser) return;
 		loadingPapers = true;
 		papersError = false;
+		limit = PAGE_SIZE;
 		try {
-			const r = await api.fieldPapers(fetch, id, {
-				window: windowDays,
-				status: status === 'all' ? undefined : status,
-				search: search.trim() || undefined,
-				limit: 50
-			});
+			const r = await api.fieldPapers(fetch, id, paperOpts(limit));
 			papers = r.papers;
 			totalAvailable = r.total_available;
+			noMore = r.papers.length < limit;
 		} catch {
 			papersError = true;
 			papers = [];
+			noMore = true;
 		}
 		loadingPapers = false;
+	}
+
+	async function loadMorePapers() {
+		if (!browser) return;
+		loadingMore = true;
+		const next = limit + PAGE_SIZE;
+		try {
+			const r = await api.fieldPapers(fetch, id, paperOpts(next));
+			noMore = r.papers.length < next || r.papers.length === papers.length;
+			papers = r.papers;
+			totalAvailable = r.total_available;
+			limit = next;
+		} catch {
+			/* keep current list */
+		}
+		loadingMore = false;
 	}
 
 	// Reload when field / window / status changes (search is debounced separately).
@@ -68,8 +98,23 @@
 		searchTimer = setTimeout(loadPapers, 350);
 	}
 
+	// --- directions tab: client-side filter over the already-loaded topic list ---
+	let dirSearch = '';
+	$: dirFiltered = (() => {
+		const all = data.directions?.directions ?? [];
+		const q = dirSearch.trim().toLowerCase();
+		if (!q) return all;
+		return all.filter(
+			(d) =>
+				d.topic_name.toLowerCase().includes(q) ||
+				(d.keywords ?? []).some((k) => k.toLowerCase().includes(q))
+		);
+	})();
+
 	// --- digest status filter (client-side over the stored edition) ---
-	let digestStatus: StatusOpt = 'peer_reviewed';
+	// Default to 'all' so the count shown matches the edition's headline (the brief is
+	// a small curated set; narrowing by status is opt-in).
+	let digestStatus: StatusOpt = 'all';
 	$: digestPapers =
 		data.digest == null
 			? []
@@ -152,13 +197,31 @@
 		{#each papers as p, i (p.id || i)}
 			<PaperCard paper={p} index={i} />
 		{/each}
+		{#if !noMore}
+			<div class="load-more">
+				<button class="btn" on:click={loadMorePapers} disabled={loadingMore}>
+					{loadingMore ? 'Loading…' : 'Load more papers'}
+				</button>
+			</div>
+		{/if}
 	{/if}
 {:else if tab === 'directions'}
+	<div class="papers-toolbar">
+		<input
+			class="search"
+			type="search"
+			placeholder="Search directions in {name}…"
+			bind:value={dirSearch}
+			aria-label="Search directions"
+		/>
+	</div>
 	<p class="section-lede muted">
 		Topics ranked by true recent output (last 30 days). Click a topic to see its papers.
 	</p>
-	{#if data.directions}
-		<Directions directions={data.directions.directions} />
+	{#if dirFiltered.length === 0 && dirSearch.trim()}
+		<p class="muted empty">No directions matching “{dirSearch}”.</p>
+	{:else if data.directions}
+		<Directions directions={dirFiltered} />
 	{/if}
 {:else}
 	{#if data.digest}
@@ -175,6 +238,14 @@
 			</div>
 			<h2 class="digest__headline">{data.digest.headline}</h2>
 			{#if data.digest.summary}<p class="digest__summary">{data.digest.summary}</p>{/if}
+			{#if data.digest.papers.length > 0}
+				<p class="feed-note mono">
+					{digestPapers.length}{digestStatus !== 'all'
+						? ` of ${data.digest.papers.length}`
+						: ''}
+					{digestPapers.length === 1 ? 'paper' : 'papers'} in this brief
+				</p>
+			{/if}
 			{#if digestPapers.length === 0}
 				<p class="muted empty">
 					No {digestStatus === 'all' ? '' : label(digestStatus).toLowerCase() + ' '}papers in this
@@ -289,6 +360,9 @@
 	.feed-note {
 		color: var(--ink-3);
 		margin: 0 0 0.6rem;
+	}
+	.load-more {
+		margin-top: 1.5rem;
 	}
 	.empty {
 		padding-block: 2rem;

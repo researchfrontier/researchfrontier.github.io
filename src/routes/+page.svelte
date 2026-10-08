@@ -130,6 +130,7 @@
 
 {#if coldShown.length > 0}
 	<section class="block">
+		<hr class="rule home-divider" />
 		<div class="spread block__head">
 			<h2>Coldest fields now</h2>
 			<span class="eyebrow">last 30 days · where it's quietest</span>
@@ -167,6 +168,10 @@
 <style>
 	.load-more {
 		margin-top: 1.5rem;
+	}
+	.home-divider {
+		border-top-color: var(--rule-strong);
+		margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
 	}
 	.hero {
 		padding-block: 0 clamp(2rem, 5vw, 3.5rem);

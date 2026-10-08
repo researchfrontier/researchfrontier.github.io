@@ -18,31 +18,62 @@
 	$: bc = data.topic?.subfield;
 	$: following = $topicInterests.includes(id);
 
+	// Load 15 at a time; "Load more" grows the request. Search/status/window run on the
+	// backend (OpenAlex), so they filter the WHOLE topic feed, not just the loaded rows.
+	const PAGE_SIZE = 15;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
+	let search = '';
 	let papers: Paper[] = data.topic?.papers ?? [];
 	let totalAvailable = data.topic?.total_available ?? 0;
+	let limit = PAGE_SIZE;
 	let loading = false;
+	let loadingMore = false;
+	let noMore = (data.topic?.papers.length ?? 0) < PAGE_SIZE;
 	let errored = false;
 	let initialized = false;
+
+	function paperOpts(lim: number) {
+		return {
+			window: windowDays,
+			status: status === 'all' ? undefined : status,
+			search: search.trim() || undefined,
+			limit: lim
+		};
+	}
 
 	async function loadPapers() {
 		if (!browser) return;
 		loading = true;
 		errored = false;
+		limit = PAGE_SIZE;
 		try {
-			const r = await api.topicPapers(fetch, id, {
-				window: windowDays,
-				status: status === 'all' ? undefined : status,
-				limit: 50
-			});
+			const r = await api.topicPapers(fetch, id, paperOpts(limit));
 			papers = r.papers;
 			totalAvailable = r.total_available;
+			noMore = r.papers.length < limit;
 		} catch {
 			errored = true;
 			papers = [];
+			noMore = true;
 		}
 		loading = false;
+	}
+
+	async function loadMorePapers() {
+		if (!browser) return;
+		loadingMore = true;
+		const next = limit + PAGE_SIZE;
+		try {
+			const r = await api.topicPapers(fetch, id, paperOpts(next));
+			noMore = r.papers.length < next || r.papers.length === papers.length;
+			papers = r.papers;
+			totalAvailable = r.total_available;
+			limit = next;
+		} catch {
+			/* keep current list */
+		}
+		loadingMore = false;
 	}
 
 	// The load() already fetched the default view; refetch only on later changes.
@@ -56,6 +87,12 @@
 			lastKey = k;
 			loadPapers();
 		}
+	}
+
+	let searchTimer: ReturnType<typeof setTimeout>;
+	function onSearch() {
+		clearTimeout(searchTimer);
+		searchTimer = setTimeout(loadPapers, 350);
 	}
 </script>
 
@@ -84,6 +121,14 @@
 	</div>
 
 	<div class="toolbar">
+		<input
+			class="search"
+			type="search"
+			placeholder="Search papers in {topicName}…"
+			bind:value={search}
+			on:input={onSearch}
+			aria-label="Search papers"
+		/>
 		<div class="windows mono" aria-label="Time window">
 			<button class:on={windowDays === 7} on:click={() => (windowDays = 7)}>7d</button>
 			<button class:on={windowDays === 30} on:click={() => (windowDays = 30)}>30d</button>
@@ -110,12 +155,21 @@
 	<p class="banner mono">Couldn't load papers. Try again.</p>
 {:else if papers.length === 0}
 	<p class="muted empty">
-		No {status === 'all' ? '' : label(status).toLowerCase() + ' '}papers in the last {windowDays} days.
+		No {status === 'all' ? '' : label(status).toLowerCase() + ' '}papers{search.trim()
+			? ` matching “${search}”`
+			: ''} in the last {windowDays} days.
 	</p>
 {:else}
 	{#each papers as p, i (p.id || i)}
 		<PaperCard paper={p} index={i} />
 	{/each}
+	{#if !noMore}
+		<div class="load-more">
+			<button class="btn" on:click={loadMorePapers} disabled={loadingMore}>
+				{loadingMore ? 'Loading…' : 'Load more papers'}
+			</button>
+		</div>
+	{/if}
 {/if}
 
 <style>
@@ -156,6 +210,20 @@
 		flex-wrap: wrap;
 		margin-top: 1rem;
 	}
+	.search {
+		flex: 1 1 240px;
+		min-width: 0;
+		font-family: var(--font-ui);
+		font-size: 0.95rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--paper-2);
+		border: 1px solid var(--rule-strong);
+		color: var(--ink);
+	}
+	.search:focus {
+		border-color: var(--accent);
+		outline: none;
+	}
 	.windows {
 		display: flex;
 		border: 1px solid var(--rule-strong);
@@ -178,6 +246,9 @@
 	.feed-note {
 		color: var(--ink-3);
 		margin: 0 0 0.6rem;
+	}
+	.load-more {
+		margin-top: 1.5rem;
 	}
 	.empty {
 		padding-block: 2rem;
