@@ -12,10 +12,9 @@
 	];
 </script>
 
-<svelte:head><title>About — ResearchFrontier</title></svelte:head>
+<svelte:head><title>About - ResearchFrontier</title></svelte:head>
 
 <article class="prose">
-	<p class="eyebrow">About</p>
 	<h1>A front door to the frontier.</h1>
 
 	<p class="lede">

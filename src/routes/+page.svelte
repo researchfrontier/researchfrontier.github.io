@@ -16,10 +16,9 @@
 	$: followed = $interests.filter((id) => nameMap.has(id));
 </script>
 
-<svelte:head><title>ResearchFrontier — the state of the art, as it happens</title></svelte:head>
+<svelte:head><title>ResearchFrontier - the state of the art, as it happens</title></svelte:head>
 
 <section class="hero">
-	<p class="eyebrow">Research Frontier</p>
 	<h1 class="hero__title">
 		The state of the art,<br /><span class="accent">as it happens.</span>
 	</h1>
@@ -94,7 +93,7 @@
 
 <style>
 	.hero {
-		padding-block: clamp(0.25rem, 1.5vw, 0.75rem) clamp(2rem, 5vw, 3.5rem);
+		padding-block: 0 clamp(2rem, 5vw, 3.5rem);
 		border-bottom: 1px solid var(--rule-strong);
 	}
 	.hero__title {

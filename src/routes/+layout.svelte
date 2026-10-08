@@ -58,7 +58,7 @@
 	}
 	main {
 		min-height: 64vh;
-		padding-block: clamp(1.5rem, 4vw, 3rem);
+		padding-block: clamp(0.5rem, 1.5vw, 0.9rem) clamp(1.5rem, 4vw, 3rem);
 	}
 	.foot {
 		padding-block: 2rem 3rem;

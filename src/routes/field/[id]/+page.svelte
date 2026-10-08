@@ -31,7 +31,7 @@
 	}
 </script>
 
-<svelte:head><title>{name} — ResearchFrontier</title></svelte:head>
+<svelte:head><title>{name} - ResearchFrontier</title></svelte:head>
 
 {#if data.apiError}
 	<p class="banner mono">Can't reach the API. Start the backend and reload.</p>

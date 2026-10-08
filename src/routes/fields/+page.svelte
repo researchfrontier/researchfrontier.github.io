@@ -25,13 +25,26 @@
 			.filter((d) => d.fields.length > 0);
 	}
 
+	let onlyFollowing = false;
+
 	$: view = filterTree(data.tree, ql);
+
+	// Optionally narrow to just the fields the user follows.
+	$: shown = onlyFollowing
+		? view
+				.map((d) => ({
+					...d,
+					fields: d.fields
+						.map((f) => ({ ...f, subfields: f.subfields.filter((s) => $interests.includes(s.id)) }))
+						.filter((f) => f.subfields.length > 0)
+				}))
+				.filter((d) => d.fields.length > 0)
+		: view;
 </script>
 
-<svelte:head><title>Research fields — ResearchFrontier</title></svelte:head>
+<svelte:head><title>Research fields - ResearchFrontier</title></svelte:head>
 
 <section class="head">
-	<p class="eyebrow">Taxonomy · OpenAlex</p>
 	<h1>Research fields</h1>
 	<p class="lede">
 		Browse the field taxonomy and follow the areas you care about. Following keeps them on your
@@ -45,13 +58,25 @@
 		bind:value={q}
 		aria-label="Filter research fields"
 	/>
+	<div class="toolbar">
+		<button
+			class="chip"
+			aria-pressed={onlyFollowing}
+			disabled={$interests.length === 0}
+			on:click={() => (onlyFollowing = !onlyFollowing)}
+		>
+			{onlyFollowing ? '✓ Showing following' : 'Only following'}{$interests.length
+				? ` · ${$interests.length}`
+				: ''}
+		</button>
+	</div>
 </section>
 
 {#if data.apiError}
 	<p class="banner mono">Can't reach the API. Start the backend and reload.</p>
 {/if}
 
-{#each view as d (d.id)}
+{#each shown as d (d.id)}
 	<section class="domain">
 		<h2 class="domain__name">{d.name}</h2>
 		{#each d.fields as f (f.id)}
@@ -77,8 +102,16 @@
 	</section>
 {/each}
 
-{#if view.length === 0 && !data.apiError}
-	<p class="muted">No field matches “{q}”.</p>
+{#if shown.length === 0 && !data.apiError}
+	<p class="muted">
+		{#if onlyFollowing && $interests.length === 0}
+			You are not following any field yet.
+		{:else if onlyFollowing}
+			None of your followed fields match “{q}”.
+		{:else}
+			No field matches “{q}”.
+		{/if}
+	</p>
 {/if}
 
 <style>
@@ -108,6 +141,13 @@
 	.search:focus {
 		border-color: var(--accent);
 		outline: none;
+	}
+	.toolbar {
+		margin-top: 0.8rem;
+	}
+	.chip:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
 	}
 
 	.domain {
