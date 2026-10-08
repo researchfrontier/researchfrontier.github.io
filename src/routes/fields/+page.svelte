@@ -51,16 +51,16 @@
 		home page and (soon, with an account) drives your personalised digest.
 		<strong>{$interests.length}</strong> followed.
 	</p>
-	<input
-		class="search"
-		type="search"
-		placeholder="Filter fields — e.g. “vision”, “oncology”, “networks”"
-		bind:value={q}
-		aria-label="Filter research fields"
-	/>
-	<div class="toolbar">
+	<div class="search-row">
+		<input
+			class="search"
+			type="search"
+			placeholder="Filter fields — e.g. “vision”, “oncology”, “networks”"
+			bind:value={q}
+			aria-label="Filter research fields"
+		/>
 		<button
-			class="chip"
+			class="chip only-following"
 			aria-pressed={onlyFollowing}
 			disabled={$interests.length === 0}
 			on:click={() => (onlyFollowing = !onlyFollowing)}
@@ -127,9 +127,15 @@
 		max-width: 62ch;
 		color: var(--ink-2);
 	}
-	.search {
+	.search-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 		margin-top: 1.1rem;
-		width: 100%;
+		flex-wrap: wrap;
+	}
+	.search {
+		flex: 1 1 280px;
 		max-width: 520px;
 		font-family: var(--font-ui);
 		font-size: 1rem;
@@ -142,8 +148,9 @@
 		border-color: var(--accent);
 		outline: none;
 	}
-	.toolbar {
-		margin-top: 0.8rem;
+	.only-following {
+		margin-left: auto;
+		white-space: nowrap;
 	}
 	.chip:disabled {
 		opacity: 0.45;

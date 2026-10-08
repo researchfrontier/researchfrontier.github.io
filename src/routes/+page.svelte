@@ -1,10 +1,32 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { base } from '$app/paths';
+	import { api } from '$lib/api';
 	import { signed } from '$lib/format';
 	import { interests, toggleInterest } from '$lib/stores/interests';
-	import type { DomainNode } from '$lib/types';
+	import type { DomainNode, HotField } from '$lib/types';
 
-	export let data: { hot: import('$lib/types').HotField[]; tree: DomainNode[]; apiError: boolean };
+	export let data: { hot: HotField[]; tree: DomainNode[]; apiError: boolean };
+
+	let hot: HotField[] = data.hot;
+	let hotLimit = 12;
+	let loadingMore = false;
+	let noMore = data.hot.length < hotLimit;
+
+	async function loadMore() {
+		if (!browser) return;
+		loadingMore = true;
+		const next = hotLimit + 12;
+		try {
+			const r = await api.hotFields(fetch, 30, next);
+			noMore = r.length < next || r.length === hot.length;
+			hot = r;
+			hotLimit = next;
+		} catch {
+			/* keep current list */
+		}
+		loadingMore = false;
+	}
 
 	// id -> label, so followed fields can be shown by name on the home page.
 	$: nameMap = (() => {
@@ -59,12 +81,12 @@
 		<span class="eyebrow">last 30 days · by output &amp; momentum</span>
 	</div>
 
-	{#if data.hot.length === 0 && !data.apiError}
+	{#if hot.length === 0 && !data.apiError}
 		<p class="muted">No activity yet — run the ingestion job to populate fields.</p>
 	{/if}
 
 	<ul class="hot-list">
-		{#each data.hot as h, i (h.subfield_id)}
+		{#each hot as h, i (h.subfield_id)}
 			<li class="hot enter" style="animation-delay:{i * 45}ms">
 				<a class="hot__link" href="{base}/field/{h.subfield_id}/">
 					<span class="hot__rank mono">{String(i + 1).padStart(2, '0')}</span>
@@ -89,9 +111,20 @@
 			</li>
 		{/each}
 	</ul>
+
+	{#if hot.length > 0 && !noMore}
+		<div class="load-more">
+			<button class="btn" on:click={loadMore} disabled={loadingMore}>
+				{loadingMore ? 'Loading…' : 'Load more fields'}
+			</button>
+		</div>
+	{/if}
 </section>
 
 <style>
+	.load-more {
+		margin-top: 1.5rem;
+	}
 	.hero {
 		padding-block: 0 clamp(2rem, 5vw, 3.5rem);
 		border-bottom: 1px solid var(--rule-strong);

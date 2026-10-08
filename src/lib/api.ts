@@ -6,7 +6,8 @@ import type {
 	DomainNode,
 	HotField,
 	Paper,
-	PaperList
+	PaperList,
+	TopicPapers
 } from './types';
 
 type Fetch = typeof fetch;
@@ -36,10 +37,15 @@ export const api = {
 	fieldPapers: (
 		f: Fetch,
 		id: number,
-		opts: { window?: number; status?: string; limit?: number; offset?: number } = {}
+		opts: { window?: number; status?: string; search?: string; limit?: number } = {}
 	) => get<PaperList>(f, `/api/fields/${id}/papers${qs(opts)}`),
 	fieldDirections: (f: Fetch, id: number, window = 30) =>
 		get<Directions>(f, `/api/fields/${id}/directions${qs({ window })}`),
 	fieldDigest: (f: Fetch, id: number) => get<Digest>(f, `/api/fields/${id}/digest`),
+	topicPapers: (
+		f: Fetch,
+		id: number,
+		opts: { window?: number; status?: string; search?: string; limit?: number } = {}
+	) => get<TopicPapers>(f, `/api/topics/${id}/papers${qs(opts)}`),
 	paper: (f: Fetch, id: number) => get<Paper>(f, `/api/papers/${id}`)
 };

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { signed } from '$lib/format';
 	import type { Direction } from '$lib/types';
 
@@ -13,19 +14,22 @@
 	<ul class="dirs">
 		{#each directions as d, i (d.topic_id)}
 			<li class="dir enter" style="animation-delay:{i * 45}ms">
-				<div class="dir__head spread">
-					<span class="dir__name">{d.topic_name}</span>
-					<span class="mono dir__stat">
-						{d.count.toLocaleString()} · {Math.round(d.share * 100)}%
-						{#if d.delta !== 0}
-							<em class:up={d.delta > 0} class:down={d.delta < 0}>{signed(d.delta)}</em>
-						{/if}
-					</span>
-				</div>
-				<div class="dir__bar"><span style="width:{(d.count / max) * 100}%"></span></div>
-				{#if d.keywords?.length}
-					<div class="dir__kw mono">{d.keywords.slice(0, 4).join(' · ')}</div>
-				{/if}
+				<a class="dir__link" href="{base}/topic/{d.topic_id}/">
+					<div class="dir__head spread">
+						<span class="dir__name">{d.topic_name}</span>
+						<span class="mono dir__stat">
+							{d.count.toLocaleString()} · {Math.round(d.share * 100)}%
+							{#if d.delta !== 0}
+								<em class:up={d.delta > 0} class:down={d.delta < 0}>{signed(d.delta)}</em>
+							{/if}
+							<span class="dir__go" aria-hidden="true">→</span>
+						</span>
+					</div>
+					<div class="dir__bar"><span style="width:{(d.count / max) * 100}%"></span></div>
+					{#if d.keywords?.length}
+						<div class="dir__kw mono">{d.keywords.slice(0, 4).join(' · ')}</div>
+					{/if}
+				</a>
 			</li>
 		{/each}
 	</ul>
@@ -38,13 +42,20 @@
 		padding: 0;
 	}
 	.dir {
-		padding-block: 0.9rem;
 		border-top: 1px solid var(--rule);
+	}
+	.dir__link {
+		display: block;
+		padding-block: 0.9rem;
 	}
 	.dir__name {
 		font-family: var(--font-display);
 		font-size: var(--step-1);
 		font-weight: 500;
+		transition: color 0.18s;
+	}
+	.dir__link:hover .dir__name {
+		color: var(--accent);
 	}
 	.dir__stat {
 		color: var(--ink-3);
@@ -58,6 +69,15 @@
 	}
 	.dir__stat em.down {
 		color: var(--bad);
+	}
+	.dir__go {
+		opacity: 0;
+		margin-left: 0.3rem;
+		transition: opacity 0.18s;
+	}
+	.dir__link:hover .dir__go {
+		opacity: 1;
+		color: var(--accent);
 	}
 	.dir__bar {
 		height: 6px;

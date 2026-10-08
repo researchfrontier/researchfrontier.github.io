@@ -52,6 +52,15 @@ export interface PaperList {
 	papers: Paper[];
 }
 
+export interface TopicPapers {
+	topic_id: number;
+	topic_name: string;
+	subfield: Breadcrumb;
+	window_days: number;
+	total_available: number;
+	papers: Paper[];
+}
+
 export interface Direction {
 	topic_id: number;
 	topic_name: string;

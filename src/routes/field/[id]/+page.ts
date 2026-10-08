@@ -1,27 +1,20 @@
 import { api } from '$lib/api';
-import type { Digest, Directions, PaperList } from '$lib/types';
+import type { Digest, Directions } from '$lib/types';
 
 // IDs are unknown at build time — this route is served by the SPA 404.html fallback.
 export const prerender = false;
 
-export const load = async ({ fetch, params, url }) => {
+export const load = async ({ fetch, params }) => {
 	const id = Number(params.id);
-	const windowDays = Number(url.searchParams.get('w') ?? 30);
+	// Papers are fetched client-side (they react to window/status/search); load the
+	// aggregate views (directions, digest) that also carry the field breadcrumb.
 	try {
-		const [papers, directions, digest] = await Promise.all([
-			api.fieldPapers(fetch, id, { window: windowDays, limit: 100 }),
-			api.fieldDirections(fetch, id, windowDays),
+		const [directions, digest] = await Promise.all([
+			api.fieldDirections(fetch, id, 30),
 			api.fieldDigest(fetch, id)
 		]);
-		return { id, windowDays, papers, directions, digest, apiError: false };
+		return { id, directions, digest, apiError: false };
 	} catch {
-		return {
-			id,
-			windowDays,
-			papers: null as PaperList | null,
-			directions: null as Directions | null,
-			digest: null as Digest | null,
-			apiError: true
-		};
+		return { id, directions: null as Directions | null, digest: null as Digest | null, apiError: true };
 	}
 };
