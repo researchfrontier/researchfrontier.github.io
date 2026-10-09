@@ -42,14 +42,14 @@
 		<a href="{base}/" class="wordmark">Research<b>Frontier</b></a>
 		<nav class="nav" aria-label="Primary">
 			<a href="{base}/" aria-current={path === `${base}/` ? 'page' : undefined}>Home</a>
+			<a href="{base}/trends/" aria-current={path.startsWith(`${base}/trends`) ? 'page' : undefined}>
+				Trends
+			</a>
 			<a
 				href="{base}/fields/"
 				aria-current={path.startsWith(`${base}/fields`) ? 'page' : undefined}
 			>
 				Fields{#if $interests.length}&nbsp;·&nbsp;{$interests.length}{/if}
-			</a>
-			<a href="{base}/trends/" aria-current={path.startsWith(`${base}/trends`) ? 'page' : undefined}>
-				Trends
 			</a>
 			<a href="{base}/about/" aria-current={path.startsWith(`${base}/about`) ? 'page' : undefined}>
 				About
