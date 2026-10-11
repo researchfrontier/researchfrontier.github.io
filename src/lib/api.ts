@@ -17,6 +17,16 @@ import type {
 
 type Fetch = typeof fetch;
 
+// Paper-list filters; `offset` skips the rows already shown (Load more).
+type PaperOpts = {
+	window?: number;
+	status?: string;
+	venue?: string;
+	search?: string;
+	limit?: number;
+	offset?: number;
+};
+
 async function get<T>(f: Fetch, path: string): Promise<T> {
 	const res = await f(`${API_BASE}${path}`, { headers: { accept: 'application/json' } });
 	if (!res.ok) {
@@ -44,7 +54,7 @@ export const api = {
 	fieldPapers: (
 		f: Fetch,
 		id: number,
-		opts: { window?: number; status?: string; venue?: string; search?: string; limit?: number } = {}
+		opts: PaperOpts = {}
 	) => get<PaperList>(f, `/api/fields/${id}/papers${qs(opts)}`),
 	fieldDirections: (f: Fetch, id: number, window = 30) =>
 		get<Directions>(f, `/api/fields/${id}/directions${qs({ window })}`),
@@ -52,7 +62,7 @@ export const api = {
 	topicPapers: (
 		f: Fetch,
 		id: number,
-		opts: { window?: number; status?: string; venue?: string; search?: string; limit?: number } = {}
+		opts: PaperOpts = {}
 	) => get<TopicPapers>(f, `/api/topics/${id}/papers${qs(opts)}`),
 	paper: (f: Fetch, id: number) => get<Paper>(f, `/api/papers/${id}`),
 	trendsHot: (f: Fetch, limit = 12) => get<TrendHot>(f, `/api/trends/hot${qs({ limit })}`),

@@ -27,9 +27,9 @@
 	let tab: 'papers' | 'directions' | 'digest' = 'directions';
 
 	// --- papers (fetched live, reactive to window/status/search) ---
-	// Load 5 at a time; "Load more" grows the request. The search/status/window all
-	// run on the backend (OpenAlex), so they filter the WHOLE field feed, not just the
-	// rows already loaded.
+	// Load 5 at a time; "Load more" fetches the next 5. The search/status/window all
+	// run on the backend (the stored feed), so they filter the WHOLE field feed, not
+	// just the rows already loaded.
 	const PAGE_SIZE = 5;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
@@ -37,7 +37,6 @@
 	let search = '';
 	let papers: Paper[] = [];
 	let totalAvailable = 0;
-	let limit = PAGE_SIZE;
 	let loadingPapers = false;
 	let loadingMore = false;
 	let noMore = false;
@@ -47,13 +46,13 @@
 	// slow in-flight fetch can't overwrite the list for a newer filter/search/window.
 	let reqSeq = 0;
 
-	function paperOpts(lim: number) {
+	function paperOpts() {
 		return {
 			window: windowDays,
 			status: status === 'all' ? undefined : status,
 			venue: venue === 'all' ? undefined : venue,
 			search: search.trim() || undefined,
-			limit: lim
+			limit: PAGE_SIZE
 		};
 	}
 
@@ -63,9 +62,8 @@
 		loadingPapers = true;
 		loadingMore = false; // a full reload supersedes any pending "load more"
 		papersError = false;
-		limit = PAGE_SIZE;
 		try {
-			const r = await api.fieldPapers(fetch, id, paperOpts(limit));
+			const r = await api.fieldPapers(fetch, id, paperOpts());
 			if (myReq !== reqSeq) return;
 			papers = r.papers;
 			totalAvailable = r.total_available;
@@ -83,14 +81,14 @@
 		if (!browser) return;
 		const myReq = ++reqSeq;
 		loadingMore = true;
-		const next = limit + PAGE_SIZE;
 		try {
-			const r = await api.fieldPapers(fetch, id, paperOpts(next));
+			const r = await api.fieldPapers(fetch, id, { ...paperOpts(), offset: papers.length });
 			if (myReq !== reqSeq) return;
-			papers = r.papers;
+			// Skip any row already shown, in case the store changed between pages.
+			const shown = new Set(papers.map((p) => p.id));
+			papers = [...papers, ...r.papers.filter((p) => !shown.has(p.id))];
 			totalAvailable = r.total_available;
 			noMore = !r.has_more;
-			limit = next;
 		} catch {
 			/* keep current list */
 		}

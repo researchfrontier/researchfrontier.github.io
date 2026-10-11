@@ -23,8 +23,9 @@
 	$: bc = data.topic?.subfield;
 	$: following = $topicInterests.includes(id);
 
-	// Load 5 at a time; "Load more" grows the request. Search/status/window run on the
-	// backend (OpenAlex), so they filter the WHOLE topic feed, not just the loaded rows.
+	// Load 5 at a time; "Load more" fetches the next 5. Search/status/window run on the
+	// backend (the stored feed), so they filter the WHOLE topic feed, not just the
+	// loaded rows.
 	const PAGE_SIZE = 5;
 	let windowDays = 30;
 	let status: StatusOpt = 'peer_reviewed';
@@ -32,7 +33,6 @@
 	let search = '';
 	let papers: Paper[] = data.topic?.papers ?? [];
 	let totalAvailable = data.topic?.total_available ?? 0;
-	let limit = PAGE_SIZE;
 	let loading = false;
 	let loadingMore = false;
 	let noMore = !(data.topic?.has_more ?? false);
@@ -43,13 +43,13 @@
 	// slow in-flight fetch can't overwrite the list for a newer filter/search/window.
 	let reqSeq = 0;
 
-	function paperOpts(lim: number) {
+	function paperOpts() {
 		return {
 			window: windowDays,
 			status: status === 'all' ? undefined : status,
 			venue: venue === 'all' ? undefined : venue,
 			search: search.trim() || undefined,
-			limit: lim
+			limit: PAGE_SIZE
 		};
 	}
 
@@ -59,9 +59,8 @@
 		loading = true;
 		loadingMore = false; // a full reload supersedes any pending "load more"
 		errored = false;
-		limit = PAGE_SIZE;
 		try {
-			const r = await api.topicPapers(fetch, id, paperOpts(limit));
+			const r = await api.topicPapers(fetch, id, paperOpts());
 			if (myReq !== reqSeq) return;
 			papers = r.papers;
 			totalAvailable = r.total_available;
@@ -79,14 +78,14 @@
 		if (!browser) return;
 		const myReq = ++reqSeq;
 		loadingMore = true;
-		const next = limit + PAGE_SIZE;
 		try {
-			const r = await api.topicPapers(fetch, id, paperOpts(next));
+			const r = await api.topicPapers(fetch, id, { ...paperOpts(), offset: papers.length });
 			if (myReq !== reqSeq) return;
-			papers = r.papers;
+			// Skip any row already shown, in case the store changed between pages.
+			const shown = new Set(papers.map((p) => p.id));
+			papers = [...papers, ...r.papers.filter((p) => !shown.has(p.id))];
 			totalAvailable = r.total_available;
 			noMore = !r.has_more;
-			limit = next;
 		} catch {
 			/* keep current list */
 		}
