@@ -39,8 +39,8 @@
 	<p>
 		Fields follow the <strong>OpenAlex</strong> taxonomy (domain → field → subfield → topic), which
 		is continuously maintained, so new and emerging areas appear on their own as they form. Papers
-		are aggregated from authoritative sources — OpenAlex as the backbone, with arXiv and Crossref
-		for freshness and provenance — deduplicated on DOI, and classified into that taxonomy.
+		come from OpenAlex, an open index that itself aggregates Crossref, arXiv, PubMed and other
+		sources; they are refreshed daily, deduplicated on DOI, and classified into that taxonomy.
 	</p>
 
 	<h2>What the badges mean</h2>
@@ -59,35 +59,38 @@
 
 	<h2>The digest</h2>
 	<p>
-		For the fields you follow, a short brief is assembled every Monday, Wednesday and Friday — the
-		notable new work, the leading directions, and the peer-review mix — readable in a minute.
+		For every active field, a short brief is assembled every Monday, Wednesday and Friday — the
+		notable new work, the leading directions, and the peer-review mix — readable in a minute in
+		the field's Digest tab.
+	</p>
+
+	<h2>Trends</h2>
+	<p>
+		The Trends page shows which fields are publishing the most right now and, for each one, its
+		yearly output since 2015, its recent momentum, its top directions, its most-cited papers and
+		the institutions and countries most active in it. You can also look up an institution to see
+		the fields it publishes most in. Field figures are precomputed from OpenAlex counts on a
+		schedule (output and momentum daily, rankings every three days, yearly curves monthly);
+		institution lookups are fetched on demand and cached for a day.
 	</p>
 
 	<h2>Sources &amp; data licensing</h2>
 	<p>
-		Paper data is aggregated from authoritative open sources and stored only as
-		<strong>metadata</strong> — we never host PDFs or full text. Every paper links out to its DOI
-		or source.
+		Paper data is stored only as <strong>metadata</strong> (title, authors, venue, date,
+		citations), kept for the last 30 days — we never host abstracts, PDFs or full text. Every
+		paper links out to its DOI or source.
 	</p>
 	<ul class="sources">
 		<li>
-			<strong>OpenAlex</strong> — the backbone: field taxonomy, works and DOIs. Released under
+			<strong>OpenAlex</strong> — our only data source: field taxonomy, works, DOIs and the counts
+			behind Trends. Released under
 			<a href="https://help.openalex.org/data/licenses/" target="_blank" rel="noopener noreferrer">CC0</a>
-			(public domain).
-		</li>
-		<li>
-			<strong>arXiv</strong> — preprint metadata, under
-			<a href="https://info.arxiv.org/help/license/index.html" target="_blank" rel="noopener noreferrer">CC0</a>.
-			Full text stays on arXiv.org; we only link to it.
-		</li>
-		<li>
-			<strong>Crossref</strong> — DOI and publication-type signals (open metadata).
+			(public domain). OpenAlex in turn draws on Crossref, arXiv, PubMed and publisher records.
 		</li>
 	</ul>
 	<p class="muted small">
-		Metadata from these sources is openly licensed for reuse. Abstracts are shown to help you
-		decide what to read; their underlying rights may rest with authors or publishers, so for the
-		full text always follow the DOI to the source.
+		Full texts stay with their publishers and repositories; we only link to them. For the full
+		text, always follow the DOI to the source.
 	</p>
 
 	<h2>Limits</h2>

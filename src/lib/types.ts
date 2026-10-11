@@ -10,7 +10,6 @@ export type ReviewStatus =
 
 export interface Author {
 	name: string;
-	position?: string | null;
 }
 
 export interface Breadcrumb {
@@ -28,21 +27,16 @@ export interface Breadcrumb {
 export interface Paper {
 	id: number;
 	title: string;
-	abstract?: string | null;
 	authors: Author[];
 	doi?: string | null;
 	doi_url?: string | null;
-	published_doi?: string | null;
 	publication_date?: string | null;
 	cited_by_count: number;
 	primary_source_name?: string | null;
 	primary_source_type?: string | null;
 	landing_page_url?: string | null;
-	pdf_url?: string | null;
-	is_oa: boolean;
 	review_status: ReviewStatus;
 	review_confidence: string;
-	review_evidence: Record<string, unknown>;
 	primary_topic?: string | null;
 }
 
@@ -177,18 +171,6 @@ export interface TrendFieldDetail {
 	most_cited: TrendCitedItem[];
 	institutions: TrendRankItem[];
 	countries: TrendRankItem[];
-}
-export interface TrendSeriesPoint {
-	date: string;
-	value: number;
-}
-export interface TrendSeries {
-	subfield_id: number;
-	name: string;
-	points: TrendSeriesPoint[];
-}
-export interface TrendHistory {
-	series: TrendSeries[];
 }
 
 export interface InstitutionHit {

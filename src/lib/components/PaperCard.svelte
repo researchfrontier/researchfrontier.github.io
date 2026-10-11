@@ -33,10 +33,6 @@
 
 	<p class="paper__authors">{authorsLine(paper.authors)}</p>
 
-	{#if paper.abstract}
-		<p class="paper__abstract">{paper.abstract}</p>
-	{/if}
-
 	<div class="paper__foot">
 		<Badge status={paper.review_status} confidence={paper.review_confidence} />
 		{#if venueType}
@@ -85,16 +81,6 @@
 		margin: 0.1rem 0;
 		color: var(--ink-2);
 		font-size: 0.95rem;
-	}
-	.paper__abstract {
-		margin: 0.5rem 0 0.9rem;
-		color: var(--ink-2);
-		max-width: 68ch;
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
 	}
 	.paper__foot {
 		display: flex;

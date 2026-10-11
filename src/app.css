@@ -13,7 +13,6 @@
 	--rule: #d8d1bf;
 	--rule-strong: #b7ad96;
 	--accent: #cf3f22; /* vermilion — emphasis + data */
-	--accent-ink: #7d2413;
 	--cool: #274b6d; /* secondary, for peer-review signal */
 	--cool-soft: #e2e9ef;
 	--good: #1f6b4b;
@@ -45,7 +44,6 @@
 		--rule: #2e291f;
 		--rule-strong: #463f30;
 		--accent: #ff6b4a;
-		--accent-ink: #ffb09c;
 		--cool: #8fb4d6;
 		--cool-soft: #1b2733;
 		--good: #5fc396;
@@ -63,7 +61,6 @@
 	--rule: #2e291f;
 	--rule-strong: #463f30;
 	--accent: #ff6b4a;
-	--accent-ink: #ffb09c;
 	--cool: #8fb4d6;
 	--cool-soft: #1b2733;
 	--good: #5fc396;

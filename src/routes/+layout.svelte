@@ -78,7 +78,7 @@
 	<hr class="rule" />
 	<p class="mono muted">
 		ResearchFrontier · a reading-front-door to the literature, not a replacement for it ·
-		data from OpenAlex, arXiv, Crossref · every paper links to its DOI
+		data from OpenAlex (CC0) · every paper links to its DOI
 	</p>
 </footer>
 

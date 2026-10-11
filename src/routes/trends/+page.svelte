@@ -4,13 +4,11 @@
 	import { api } from '$lib/api';
 	import BarList from '$lib/components/BarList.svelte';
 	import LineChart from '$lib/components/LineChart.svelte';
-	import MultiLineChart from '$lib/components/MultiLineChart.svelte';
-	import type { InstitutionHit, TrendField, TrendFieldDetail, TrendHistory, TrendHot } from '$lib/types';
+	import type { InstitutionHit, TrendField, TrendFieldDetail, TrendHot } from '$lib/types';
 
-	export let data: { hot: TrendHot | null; history: TrendHistory | null; apiError: boolean };
+	export let data: { hot: TrendHot | null; apiError: boolean };
 
 	$: fields = data.hot?.fields ?? [];
-	$: historySeries = data.history?.series ?? [];
 
 	const yearPoints = (f: TrendField) => f.years.map((y) => ({ label: String(y.year), value: y.count }));
 
@@ -104,12 +102,6 @@
 		who is most active. Multi-year curves show now; week-to-week momentum fills in as snapshots
 		accrue.
 	</p>
-</section>
-
-<section class="history">
-	<h2 class="eyebrow">Hottest fields, week by week</h2>
-	<p class="muted small">30-day output of the leading fields, tracked over time.</p>
-	<MultiLineChart series={historySeries} ariaLabel="Hottest fields' 30-day output over time" />
 </section>
 
 <div class="layout">
@@ -276,14 +268,6 @@
 	.lede {
 		max-width: 64ch;
 		color: var(--ink-2);
-	}
-	.history {
-		margin-bottom: 1.8rem;
-		padding-bottom: 1.6rem;
-		border-bottom: 1px solid var(--rule);
-	}
-	.history .small {
-		margin: 0.1rem 0 0.8rem;
 	}
 	.layout {
 		display: grid;

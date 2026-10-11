@@ -12,7 +12,6 @@ import type {
 	PaperList,
 	TopicPapers,
 	TrendFieldDetail,
-	TrendHistory,
 	TrendHot
 } from './types';
 
@@ -57,7 +56,6 @@ export const api = {
 	) => get<TopicPapers>(f, `/api/topics/${id}/papers${qs(opts)}`),
 	paper: (f: Fetch, id: number) => get<Paper>(f, `/api/papers/${id}`),
 	trendsHot: (f: Fetch, limit = 12) => get<TrendHot>(f, `/api/trends/hot${qs({ limit })}`),
-	trendsHistory: (f: Fetch, limit = 6) => get<TrendHistory>(f, `/api/trends/history${qs({ limit })}`),
 	trendsField: (f: Fetch, id: number) => get<TrendFieldDetail>(f, `/api/trends/fields/${id}`),
 	institutionSearch: (f: Fetch, q: string) =>
 		get<InstitutionHit[]>(f, `/api/trends/institutions${qs({ q })}`),

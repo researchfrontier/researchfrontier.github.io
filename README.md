@@ -18,11 +18,16 @@ not a grid of rounded, shadowed cards.
 
 ## Pages
 
-- `/` — hero + hottest fields (output + momentum) + your followed fields.
+- `/` — hero + your followed fields + hottest and coldest fields (output + momentum).
 - `/fields/` — browse the taxonomy, filter, follow/unfollow (localStorage for now).
-- `/field/{id}/` — a field: **Papers** (badged, DOI-linked), **Directions** (topic
-  momentum), **Digest** (the Mon/Wed/Fri brief). 7d / 30d window toggle.
-- `/about/` — method, sources, badge legend, roadmap.
+- `/field/{id}/` — a field: **Directions** (its topics by recent output, the default
+  tab), **Papers** (badged, DOI-linked; 7d / 30d window, status / venue filters,
+  title search), **Digest** (the Mon/Wed/Fri brief).
+- `/topic/{id}/` — a direction: its recent papers, with the same filters.
+- `/trends/` — hottest fields with yearly sparklines; per-field yearly output, recent
+  momentum, top directions, most-cited papers, most-active institutions/countries;
+  and an institution search showing the fields it is most active in.
+- `/about/` — method, sources, badge legend, limits, roadmap.
 
 ## Develop
 
